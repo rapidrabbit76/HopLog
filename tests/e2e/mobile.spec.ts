@@ -1,4 +1,5 @@
 import { devices, expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 test.use({
   viewport: devices["iPhone 13"].viewport,
@@ -11,7 +12,7 @@ test.use({
 test.skip(({ browserName }) => browserName === "firefox", "Firefox does not support iPhone emulation contexts.");
 
 test("home page works on a mobile viewport", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await expect(page.getByRole("banner")).toBeVisible();
   await expect(page.getByRole("main")).toBeVisible();
@@ -21,7 +22,7 @@ test("home page works on a mobile viewport", async ({ page }) => {
 });
 
 test("category filtering still works on mobile", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await expect.poll(async () => {
     await page.locator("select").selectOption("Design");
@@ -36,7 +37,7 @@ test("category filtering still works on mobile", async ({ page }) => {
 });
 
 test("post content stays usable on mobile", async ({ page }) => {
-  await page.goto("/posts/tutorial/getting-started");
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
   await expect(page.getByRole("article")).toBeVisible();
   await expect(page.getByRole("heading", { name: /Getting Started with HopLog/i })).toBeVisible();

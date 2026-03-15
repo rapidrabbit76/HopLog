@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 test("home page shows all published posts", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await expect(page.getByRole("heading", { name: /latest posts/i })).toBeVisible();
   const postLinks = page.locator('article a[href^="/posts/"]');
@@ -11,7 +12,7 @@ test("home page shows all published posts", async ({ page }) => {
 });
 
 test("category filter narrows the visible post list", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.locator("select").selectOption("Config");
 
@@ -22,7 +23,7 @@ test("category filter narrows the visible post list", async ({ page }) => {
 });
 
 test("category filter supports categories with multiple posts", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.locator("select").selectOption("Design");
 

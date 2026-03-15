@@ -41,7 +41,7 @@ export default function PostCard({
     const resolvedImageSize = imageSize ?? DEFAULTS.imageSize[variant];
 
     return (
-        <article className={cn("animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both", outerClassName)}>
+        <article className={cn("relative z-0 animate-in fade-in slide-in-from-bottom-2 duration-500 fill-mode-both", outerClassName)}>
             <Link
                 href={`/posts/${post.id}`}
                 className={cn(
@@ -123,17 +123,17 @@ export default function PostCard({
 
                     {post.image && (
                         <div className={cn(
-                            "relative shrink-0 rounded-2xl overflow-hidden border border-border/50 shadow-2xl group-hover:border-primary/30 transition-all duration-500",
+                            "relative z-0 shrink-0 rounded-2xl overflow-hidden border border-border/50 shadow-2xl group-hover:border-primary/30 transition-all duration-500 pointer-events-none",
                             resolvedImageSize,
                         )}>
                             <Image
                                 src={post.image}
-                                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                className="object-cover group-hover:scale-110 transition-transform duration-700 pointer-events-none"
                                 alt={post.title}
                                 fill
                                 sizes={isCompact ? "80px" : "(max-width: 640px) 100vw, 128px"}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                     )}
                 </div>

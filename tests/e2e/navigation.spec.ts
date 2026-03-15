@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 test("home navigation reaches about and faq", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.getByRole("banner").getByRole("link", { name: /about/i }).click();
   await expect(page).toHaveURL(/\/about$/);
@@ -14,7 +15,7 @@ test("home navigation reaches about and faq", async ({ page }) => {
 });
 
 test("faq entries can be expanded", async ({ page }) => {
-  await page.goto("/faq");
+  await gotoAndWaitForApp(page, "/faq");
 
   const item = page.locator("details").filter({ hasText: "How do I create a new post?" });
   await item.locator("summary").click();
@@ -24,7 +25,7 @@ test("faq entries can be expanded", async ({ page }) => {
 });
 
 test("unknown routes show the not found page", async ({ page }) => {
-  await page.goto("/this-route-does-not-exist");
+  await gotoAndWaitForApp(page, "/this-route-does-not-exist");
 
   await expect(page.getByRole("heading", { name: /page not found/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /back home/i })).toBeVisible();

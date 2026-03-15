@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 test("post pages render article content and markdown headings", async ({ page }) => {
-  await page.goto("/posts/tutorial/getting-started");
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
   await expect(page.getByRole("article")).toBeVisible();
   await expect(page.getByRole("heading", { name: /Getting Started with HopLog/i })).toBeVisible();
@@ -13,7 +14,7 @@ test("post pages render article content and markdown headings", async ({ page })
 
 test("post pages expose table of contents and copy code controls", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/posts/tutorial/getting-started");
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
   await expect(page.getByText(/On this page/i)).toBeVisible();
   await expect(page.locator('a[href="#quick-start-with-docker-recommended"]')).toBeVisible();
@@ -22,7 +23,7 @@ test("post pages expose table of contents and copy code controls", async ({ page
 });
 
 test("post pages render share buttons in correct order", async ({ page }) => {
-  await page.goto("/posts/tutorial/getting-started");
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
   await expect(page.getByRole("button", { name: /share on twitter/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /share on facebook/i })).toBeVisible();
@@ -31,7 +32,7 @@ test("post pages render share buttons in correct order", async ({ page }) => {
 });
 
 test("share copy link button shows check icon after click", async ({ page }) => {
-  await page.goto("/posts/tutorial/getting-started");
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
   const copyButton = page.getByRole("button", { name: /copy link/i });
   await expect(copyButton).toBeVisible();
@@ -48,7 +49,7 @@ test("share copy link button shows check icon after click", async ({ page }) => 
 });
 
 test("post links from home open the matching article page", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.locator('a[href="/posts/tutorial/site-configuration"]').first().click();
 

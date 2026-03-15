@@ -73,7 +73,7 @@ export default function Header({ title, faqEnabled }: { title: string; faqEnable
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-colors duration-300">
+    <header className="sticky top-0 z-[100] isolate w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-colors duration-300">
       <div
         className={cn(
           "mx-auto flex h-14 items-center justify-between px-5 max-w-5xl narrow:max-w-2xl",

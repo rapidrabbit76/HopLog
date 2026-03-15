@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 const paletteShortcut = process.platform === "darwin" ? "Meta+Shift+P" : "Control+Shift+P";
 
 test("theme toggle persists after reload", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   const html = page.locator("html");
 
@@ -16,7 +17,7 @@ test("theme toggle persists after reload", async ({ page }) => {
 });
 
 test("locale selection persists after reload", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.getByRole("button", { name: /language menu/i }).click();
   await page.getByRole("button", { name: /한국어/i }).click();
@@ -28,7 +29,7 @@ test("locale selection persists after reload", async ({ page }) => {
 });
 
 test("wide mode toggle persists after reload", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   const html = page.locator("html");
 
@@ -40,7 +41,7 @@ test("wide mode toggle persists after reload", async ({ page }) => {
 });
 
 test("command palette opens via header search button", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.getByRole("button", { name: /command palette/i }).click();
 
@@ -49,7 +50,7 @@ test("command palette opens via header search button", async ({ page }) => {
 });
 
 test("command palette closes on outside click", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.getByRole("button", { name: /command palette/i }).click();
 
@@ -62,7 +63,7 @@ test("command palette closes on outside click", async ({ page }) => {
 });
 
 test("command palette can open and navigate to a post", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.keyboard.press(paletteShortcut);
 

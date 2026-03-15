@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { gotoAndWaitForApp } from "./helpers";
 
 test("home page renders", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("banner")).toBeVisible();
@@ -10,7 +11,7 @@ test("home page renders", async ({ page }) => {
 });
 
 test("about page opens from header", async ({ page }) => {
-  await page.goto("/");
+  await gotoAndWaitForApp(page, "/");
 
   await page.getByRole("link", { name: /about/i }).click();
 

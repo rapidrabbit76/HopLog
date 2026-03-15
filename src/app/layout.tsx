@@ -9,6 +9,7 @@ import LayoutWrapper from "@/components/LayoutWrapper";
 import CommandPalette from "@/components/CommandPalette";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import AppReadyMarker from "@/components/AppReadyMarker";
 import { hasFAQContent } from "@/lib/faq";
 import { getAnalyticsRuntimeConfig, getConfig, getSEOConfig, getSiteHost, parseRobotsPolicy } from "@/lib/config";
 import { getHtmlLang, parseLocaleCookie } from "@/lib/i18n";
@@ -224,11 +225,12 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LocaleProvider initialLocale={initialLocale}>
+            <AppReadyMarker />
             <AnalyticsRuntime config={analyticsConfig} />
             <Header title={config.site.title} faqEnabled={faqEnabled} />
             <CommandPalette themes={themes} faqEnabled={faqEnabled} searchMode={searchMode} />
             <LayoutWrapper>
-              <main className="flex-grow w-full px-4 py-4">
+              <main className="relative z-0 flex-grow w-full px-4 py-4">
                 <PageTransition>{children}</PageTransition>
               </main>
 
