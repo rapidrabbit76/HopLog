@@ -12,14 +12,50 @@ function getRefererPath(referer: string | null) {
   }
 }
 
+function getPostImageRewrite(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments.length < 4 || segments[0] !== "posts") {
+    return null;
+  }
+
+  const imageDirIndex = segments.lastIndexOf("images");
+
+  if (imageDirIndex <= 1 || imageDirIndex === segments.length - 1) {
+    return null;
+  }
+
+  const postSegments = segments.slice(1, imageDirIndex);
+  const imageSegments = segments.slice(imageDirIndex + 1);
+
+  return {
+    postSegments,
+    imagePath: imageSegments.join("/"),
+  };
+}
+
 export function proxy(request: NextRequest) {
   const start = Date.now();
-  const response = NextResponse.next();
 
   const { method } = request;
   const url = request.nextUrl;
   const path = url.pathname;
   const query = url.search || "";
+  const rewrite = getPostImageRewrite(path);
+  const response = (() => {
+    if (!rewrite) {
+      return NextResponse.next();
+    }
+
+    const rewriteUrl = url.clone();
+    rewriteUrl.pathname = `/api/post-images/${rewrite.postSegments.map(encodeURIComponent).join("/")}/images/${rewrite.imagePath
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/")}`;
+    rewriteUrl.search = "";
+
+    return NextResponse.rewrite(rewriteUrl);
+  })();
 
   // Client info
   const ip =
@@ -101,6 +137,7 @@ function parseUA(ua: string): string {
 
 export const config = {
   matcher: [
+    "/posts/:path*/images/:path*",
     // Match all paths except static files and Next.js internals
     "/((?!_next/static|_next/image|favicon|apple-icon|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|woff2?|ttf|css|js)$).*)",
   ],

@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import { Post, PostActivityItem, PostListItem, PostListPage, POSTS_PER_PAGE, PostSEO, PostSearchItem, PostSearchSyncItem } from "./data";
 import { getPostsCacheTtlMs } from "./config";
+import { resolvePostImageUrl } from "./post-images";
 
 export interface PostDetail extends Post {
   content: string;
@@ -84,7 +85,7 @@ export function isPrivatePost(frontmatter: Record<string, unknown>): boolean {
   return false;
 }
 
-export function parseSEO(data: Record<string, unknown>): PostSEO | undefined {
+export function parseSEO(data: Record<string, unknown>, postId?: string): PostSEO | undefined {
   const seo = data.seo as Record<string, unknown> | undefined;
 
   // Collect all SEO-related fields
@@ -114,7 +115,7 @@ export function parseSEO(data: Record<string, unknown>): PostSEO | undefined {
       hasAny = true;
     }
     if (typeof seo.ogImage === "string") {
-      result.ogImage = seo.ogImage;
+      result.ogImage = postId ? resolvePostImageUrl(postId, seo.ogImage) : seo.ogImage;
       hasAny = true;
     }
     if (typeof seo.ogImageWidth === "number") {
@@ -138,7 +139,7 @@ export function parseSEO(data: Record<string, unknown>): PostSEO | undefined {
       hasAny = true;
     }
     if (typeof seo.twitterImage === "string") {
-      result.twitterImage = seo.twitterImage;
+      result.twitterImage = postId ? resolvePostImageUrl(postId, seo.twitterImage) : seo.twitterImage;
       hasAny = true;
     }
     if (typeof seo.canonical === "string") {
@@ -152,13 +153,17 @@ export function parseSEO(data: Record<string, unknown>): PostSEO | undefined {
   }
 
   // Auto-fallback: if post has a thumbnail image, use it as OG/Twitter image unless explicitly set
-  if (typeof data.image === "string" && data.image) {
+  const resolvedImage = typeof data.image === "string" && data.image
+    ? (postId ? resolvePostImageUrl(postId, data.image) : data.image)
+    : null;
+
+  if (resolvedImage) {
     if (!result.ogImage) {
-      result.ogImage = data.image;
+      result.ogImage = resolvedImage;
       hasAny = true;
     }
     if (!result.twitterImage) {
-      result.twitterImage = data.image;
+      result.twitterImage = resolvedImage;
       hasAny = true;
     }
   }
@@ -197,13 +202,16 @@ export function getAllPosts(): Post[] {
         categories = matterResult.data.category.split(",").map((c) => c.trim());
       }
 
-      const seo = parseSEO(matterResult.data);
+      const seo = parseSEO(matterResult.data, id);
+      const image =
+        typeof matterResult.data.image === "string" ? resolvePostImageUrl(id, matterResult.data.image) : undefined;
 
       const excerpt = matterResult.data.excerpt || generateExcerpt(matterResult.content);
 
       return {
         id,
         ...(matterResult.data as Omit<Post, "id" | "category" | "seo" | "excerpt">),
+        ...(image ? { image } : {}),
         category: categories,
         excerpt,
         ...(seo ? { seo } : {}),
@@ -363,12 +371,17 @@ export function getPostById(id: string): PostDetail | null {
     categories = matterResult.data.category.split(",").map((c) => c.trim());
   }
 
-  const seo = parseSEO(matterResult.data);
+  const seo = parseSEO(matterResult.data, normalizedId);
+  const image =
+    typeof matterResult.data.image === "string"
+      ? resolvePostImageUrl(normalizedId, matterResult.data.image)
+      : undefined;
 
   return {
     id: normalizedId,
     content: matterResult.content,
     ...(matterResult.data as Omit<Post, "id" | "category" | "seo">),
+    ...(image ? { image } : {}),
     category: categories,
     ...(seo ? { seo } : {}),
   } as PostDetail;

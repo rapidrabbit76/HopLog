@@ -3,6 +3,7 @@ title: "Getting Started with HopLog"
 date: "2026.03.12"
 category: ["EN", "Guide", "HopLog"]
 excerpt: "From installation to your first post. Covers project structure, frontmatter, keyboard shortcuts, and i18n."
+image: "./images/hero-bg.webp"
 ---
 
 ## Quick Start with Docker (Recommended)
@@ -69,7 +70,7 @@ title: "Post Title"                        # required
 date: "2026.03.12"                         # required
 category: ["EN", "Dev", "Guide"]                 # required
 excerpt: "Short summary"                   # optional (auto-generated from body if omitted)
-image: "/api/images/thumbnail.jpg"         # optional (card thumbnail & OG image)
+image: "./images/thumbnail.jpg"            # optional (post-local thumbnail & OG image)
 fontFamily: "'Noto Sans KR', sans-serif"   # optional (per-post font override)
 fontUrl: "https://fonts.googleapis.com/..."# optional
 visibility: "private"                      # optional (hides post entirely)
@@ -80,6 +81,16 @@ seo:                                       # optional (per-post SEO overrides)
   noindex: false
 ---
 ```
+
+### Post-local Images
+
+This document uses an image stored next to the post itself. Put `content/posts/tutorial/getting-started/images/hero-bg.webp` beside the markdown file and reference it directly from markdown with a relative path.
+
+```md
+![Post-local image example](./images/hero-bg.webp)
+```
+
+![Post-local image example](./images/hero-bg.webp)
 
 ### Private Posts
 
@@ -95,7 +106,7 @@ The home page starts with the first page of posts, lets readers switch categorie
 - **Math**: KaTeX support via `remark-math` + `rehype-katex`
 - **GFM tables**: GitHub Flavored Markdown tables
 - **Table of Contents**: Auto-generated sticky ToC on wide screens with scroll tracking
-- **Images**: Store in `content/images/`, reference as `/api/images/filename`
+- **Images**: Use `content/images/` + `/api/images/...` for shared assets, or a post-local `images/` folder + `./images/...` for per-post assets
 - **Post sharing**: Configure `sharing:` in `content/config.yml` to show icon-only share buttons at the bottom of each post (`twitter`, `facebook`, `linkedin`, `copyLink`)
 
 ## Keyboard Shortcuts

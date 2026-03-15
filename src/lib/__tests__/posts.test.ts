@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import fs from "fs";
+import path from "path";
+
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isPrivatePost, parseSEO } from "@/lib/posts";
 
@@ -40,6 +43,24 @@ describe("parseSEO", () => {
     });
   });
 
+  it("resolves post-local relative image fields when a post id is provided", () => {
+    expect(
+      parseSEO(
+        {
+          image: "./images/cover.png",
+          seo: {
+            ogImage: "images/og.png",
+            twitterImage: "images/twitter.png",
+          },
+        },
+        "tutorial/ko/getting-started",
+      ),
+    ).toEqual({
+      ogImage: "/posts/tutorial/ko/getting-started/images/og.png",
+      twitterImage: "/posts/tutorial/ko/getting-started/images/twitter.png",
+    });
+  });
+
   it("ignores seo fields with invalid types", () => {
     expect(
       parseSEO({
@@ -56,5 +77,58 @@ describe("parseSEO", () => {
     ).toEqual({
       keywords: ["valid"],
     });
+  });
+});
+
+describe("post image rewriting integration", () => {
+  const originalContentDir = process.env.CONTENT_DIR;
+  let contentDirPath = "";
+  let contentDirRelative = "";
+
+  beforeEach(() => {
+    vi.resetModules();
+    contentDirPath = fs.mkdtempSync(path.join(process.cwd(), ".tmp-content-"));
+    contentDirRelative = path.relative(process.cwd(), contentDirPath);
+    fs.mkdirSync(path.join(contentDirPath, "posts", "tutorial", "ko"), { recursive: true });
+    process.env.CONTENT_DIR = contentDirRelative;
+  });
+
+  afterEach(() => {
+    if (originalContentDir === undefined) {
+      delete process.env.CONTENT_DIR;
+    } else {
+      process.env.CONTENT_DIR = originalContentDir;
+    }
+
+    if (contentDirPath) {
+      fs.rmSync(contentDirPath, { recursive: true, force: true });
+    }
+  });
+
+  it("rewrites post-local frontmatter image fields in loaded posts", async () => {
+    fs.writeFileSync(
+      path.join(contentDirPath, "posts", "tutorial", "ko", "getting-started.md"),
+      `---
+title: "Getting Started"
+date: "2026.03.12"
+category: ["Guide"]
+image: "./images/cover.png"
+seo:
+  ogImage: "images/og.png"
+  twitterImage: "images/twitter.png"
+---
+
+Body
+`,
+    );
+
+    const { getAllPosts, getPostById } = await import("@/lib/posts");
+    const post = getPostById("tutorial/ko/getting-started");
+    const allPosts = getAllPosts();
+
+    expect(post?.image).toBe("/posts/tutorial/ko/getting-started/images/cover.png");
+    expect(post?.seo?.ogImage).toBe("/posts/tutorial/ko/getting-started/images/og.png");
+    expect(post?.seo?.twitterImage).toBe("/posts/tutorial/ko/getting-started/images/twitter.png");
+    expect(allPosts[0]?.image).toBe("/posts/tutorial/ko/getting-started/images/cover.png");
   });
 });

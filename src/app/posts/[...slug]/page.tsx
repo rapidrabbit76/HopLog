@@ -16,6 +16,7 @@ import CodeCopyButton from "@/components/CodeCopyButton";
 import PostNavigation from "@/components/PostNavigation";
 import GiscusComments from "@/components/GiscusComments";
 import ShareButtons from "@/components/sharing/ShareButtons";
+import { resolvePostImageUrl } from "@/lib/post-images";
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -161,6 +162,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
             rehypePlugins={[rehypeSlug, rehypeHighlight, rehypeKatex]}
+            urlTransform={(url) => resolvePostImageUrl(post.id, url)}
             components={{
               pre: ({ children }) => {
                 return (
