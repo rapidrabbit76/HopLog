@@ -101,4 +101,19 @@ describe("api/post-images route", () => {
 
     expect(response.status).toBe(404);
   });
+
+  it("rejects traversal attempts in post path segments", async () => {
+    fs.mkdirSync(path.join(contentDirPath, "posts", "escape-target", "images"), { recursive: true });
+    fs.writeFileSync(path.join(contentDirPath, "posts", "escape-target", "images", "hero.png"), "escaped");
+
+    const { GET } = await import("@/app/api/post-images/[...path]/route");
+    const response = await GET(
+      new Request("http://localhost/api/post-images/%2e%2e/escape-target/images/hero.png"),
+      {
+        params: Promise.resolve({ path: ["..", "escape-target", "images", "hero.png"] }),
+      },
+    );
+
+    expect(response.status).toBe(404);
+  });
 });

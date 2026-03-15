@@ -12,6 +12,20 @@ function buildPublicPostImageUrl(postId: string, relativeImagePath: string) {
   return `/posts/${encodePathSegments(postId.split("/"))}/images/${encodePathSegments(relativeImagePath.split("/"))}`;
 }
 
+function splitUrlSuffix(value: string) {
+  const match = value.match(/^([^?#]*)(\?[^#]*)?(#.*)?$/);
+
+  return {
+    pathname: match?.[1] ?? value,
+    search: match?.[2] ?? "",
+    hash: match?.[3] ?? "",
+  };
+}
+
+function isSafePathSegment(segment: string) {
+  return Boolean(segment) && segment !== "." && segment !== ".." && !segment.includes("/") && !segment.includes("\\");
+}
+
 function normalizeImageAssetPath(value: string) {
   const normalized = value.replace(/\\/g, "/");
   const trimmed = normalized.startsWith("./") ? normalized.slice(2) : normalized;
@@ -38,17 +52,18 @@ export function getRelativePostImagePath(value: string) {
 }
 
 export function resolvePostImageUrl(postId: string, value: string) {
-  const relativeImagePath = getRelativePostImagePath(value);
+  const { pathname, search, hash } = splitUrlSuffix(value);
+  const relativeImagePath = getRelativePostImagePath(pathname);
 
   if (!relativeImagePath) {
     return value;
   }
 
-  return buildPublicPostImageUrl(postId, relativeImagePath);
+  return `${buildPublicPostImageUrl(postId, relativeImagePath)}${search}${hash}`;
 }
 
 export function resolvePostImageFilePath(postPathSegments: string[], imagePath: string | null) {
-  if (postPathSegments.length === 0 || !imagePath) {
+  if (postPathSegments.length === 0 || !imagePath || !postPathSegments.every(isSafePathSegment)) {
     return null;
   }
 
@@ -64,7 +79,13 @@ export function resolvePostImageFilePath(postPathSegments: string[], imagePath: 
   }
 
   const postsBaseDir = path.resolve(process.cwd(), getContentDir(), "posts");
-  const postImagesDir = path.resolve(postsBaseDir, ...postPathSegments, "images");
+  const postDir = path.resolve(postsBaseDir, ...postPathSegments);
+
+  if (postDir === postsBaseDir || !postDir.startsWith(`${postsBaseDir}${path.sep}`)) {
+    return null;
+  }
+
+  const postImagesDir = path.resolve(postDir, "images");
   const fullPath = path.resolve(postImagesDir, ...normalizedImagePath.split("/"));
 
   if (fullPath === postImagesDir || !fullPath.startsWith(`${postImagesDir}${path.sep}`)) {

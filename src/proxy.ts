@@ -13,24 +13,25 @@ function getRefererPath(referer: string | null) {
 }
 
 function getPostImageRewrite(pathname: string) {
-  const segments = pathname.split("/").filter(Boolean);
+  if (!pathname.startsWith("/posts/")) {
+    return null;
+  }
 
-  if (segments.length < 4 || segments[0] !== "posts") {
+  const rawSuffix = pathname.slice("/posts/".length);
+  const segments = rawSuffix.split("/").filter(Boolean);
+
+  if (segments.length < 3) {
     return null;
   }
 
   const imageDirIndex = segments.lastIndexOf("images");
 
-  if (imageDirIndex <= 1 || imageDirIndex === segments.length - 1) {
+  if (imageDirIndex <= 0 || imageDirIndex === segments.length - 1) {
     return null;
   }
 
-  const postSegments = segments.slice(1, imageDirIndex);
-  const imageSegments = segments.slice(imageDirIndex + 1);
-
   return {
-    postSegments,
-    imagePath: imageSegments.join("/"),
+    rawSuffix,
   };
 }
 
@@ -48,11 +49,7 @@ export function proxy(request: NextRequest) {
     }
 
     const rewriteUrl = url.clone();
-    rewriteUrl.pathname = `/api/post-images/${rewrite.postSegments.map(encodeURIComponent).join("/")}/images/${rewrite.imagePath
-      .split("/")
-      .map(encodeURIComponent)
-      .join("/")}`;
-    rewriteUrl.search = "";
+    rewriteUrl.pathname = `/api/post-images/${rewrite.rawSuffix}`;
 
     return NextResponse.rewrite(rewriteUrl);
   })();

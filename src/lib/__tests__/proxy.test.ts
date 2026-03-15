@@ -69,4 +69,42 @@ describe("proxy", () => {
       expect.stringContaining("/posts/tutorial/ko/getting-started/images/figures/hero-bg.webp"),
     );
   });
+
+  it("preserves percent-encoded image segments when rewriting", () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const response = proxy(
+      new NextRequest("http://localhost/posts/tutorial/ko/getting-started/images/my%20hero-%ED%95%9C%EA%B8%80.webp", {
+        headers: {
+          "user-agent": "Mozilla/5.0",
+        },
+      }),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "http://localhost/api/post-images/tutorial/ko/getting-started/images/my%20hero-%ED%95%9C%EA%B8%80.webp",
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/posts/tutorial/ko/getting-started/images/my%20hero-%ED%95%9C%EA%B8%80.webp"),
+    );
+  });
+
+  it("preserves query strings on rewritten post image requests", () => {
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const response = proxy(
+      new NextRequest("http://localhost/posts/tutorial/ko/getting-started/images/hero-bg.webp?v=1", {
+        headers: {
+          "user-agent": "Mozilla/5.0",
+        },
+      }),
+    );
+
+    expect(response.headers.get("x-middleware-rewrite")).toBe(
+      "http://localhost/api/post-images/tutorial/ko/getting-started/images/hero-bg.webp?v=1",
+    );
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("/posts/tutorial/ko/getting-started/images/hero-bg.webp?v=1"),
+    );
+  });
 });

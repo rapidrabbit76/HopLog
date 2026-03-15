@@ -14,6 +14,18 @@ describe("post image helpers", () => {
     );
   });
 
+  it("preserves query strings and hashes when rewriting post-local image paths", () => {
+    expect(resolvePostImageUrl("tutorial/ko/getting-started", "./images/hero.png?v=1")).toBe(
+      "/posts/tutorial/ko/getting-started/images/hero.png?v=1",
+    );
+    expect(resolvePostImageUrl("tutorial/ko/getting-started", "./images/hero.png#cover")).toBe(
+      "/posts/tutorial/ko/getting-started/images/hero.png#cover",
+    );
+    expect(resolvePostImageUrl("tutorial/ko/getting-started", "./images/hero.png?v=1#cover")).toBe(
+      "/posts/tutorial/ko/getting-started/images/hero.png?v=1#cover",
+    );
+  });
+
   it("leaves non post-local image paths unchanged", () => {
     expect(resolvePostImageUrl("tutorial/test", "/api/images/hero.png")).toBe("/api/images/hero.png");
     expect(resolvePostImageUrl("tutorial/test", "https://example.com/hero.png")).toBe("https://example.com/hero.png");
@@ -35,5 +47,10 @@ describe("post image helpers", () => {
       path.resolve(process.cwd(), "content", "posts", "tutorial", "ko", "getting-started", "images", "figures", "diagram.png"),
     );
     expect(resolvePostImageFilePath(["tutorial", "ko", "getting-started"], "../secret.txt")).toBeNull();
+  });
+
+  it("rejects traversal in post path segments before resolving image files", () => {
+    expect(resolvePostImageFilePath([".."], "hero.png")).toBeNull();
+    expect(resolvePostImageFilePath(["tutorial", "..", "getting-started"], "hero.png")).toBeNull();
   });
 });

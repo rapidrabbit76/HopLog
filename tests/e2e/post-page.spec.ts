@@ -31,6 +31,21 @@ test("post pages render share buttons in correct order", async ({ page }) => {
   await expect(page.getByRole("button", { name: /copy link/i })).toBeVisible();
 });
 
+test("post-local images load through the public post image path", async ({ page }) => {
+  await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
+
+  const image = page.locator('img[src*="/posts/tutorial/getting-started/images/hero-bg.webp"]').first();
+
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute("src", /\/posts\/tutorial\/getting-started\/images\/hero-bg\.webp$/);
+  await expect
+    .poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalWidth), {
+      timeout: 10_000,
+      message: "waiting for the post-local image to finish loading",
+    })
+    .toBeGreaterThan(0);
+});
+
 test("share copy link button shows check icon after click", async ({ page }) => {
   await gotoAndWaitForApp(page, "/posts/tutorial/getting-started");
 
