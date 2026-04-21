@@ -182,6 +182,79 @@ When using Meilisearch, these additional variables apply:
 | `bun run search:sync` | Sync posts to Meilisearch index |
 | `bun run import:velog -- <username>` | Import posts from Velog |
 
+## 🔒 Security
+
+HopLog applies a layered security approach across the stack:
+
+| Area | Measure |
+| :--- | :--- |
+| **CSP** | `Content-Security-Policy` enforced (not Report-Only). `script-src`, `img-src`, and `connect-src` restrict to explicit allowlists. |
+| **SVG Serving** | SVG files are served as `application/octet-stream` to prevent stored XSS via `<script>` in SVG content. |
+| **Theme Validation** | YAML theme color values are validated against an allowlist regex (`isSafeCssColor`) before being written into CSS responses. |
+| **Log Injection** | User-supplied query strings and category params are sanitized (`sanitizeLogValue`) before being written to server logs. |
+| **API Input** | `themeId` and `mode` query params in `/api/giscus-theme` are whitelist-validated. External API responses (Meilisearch, GitHub Contributions) are runtime-typed before use. |
+| **Path Traversal** | Image serving routes validate resolved paths are inside the expected content directory. |
+| **Private Posts** | Private posts are filtered from all public routes, API responses, sitemaps, and metadata. |
+
+## 🖥️ Server Deployment
+
+### First-time Setup
+
+```bash
+# 1. Clone the repository on your server
+git clone https://github.com/hang-in/HopLog.git
+cd HopLog
+
+# 2. Copy and edit your profile
+cp content/profile.example.yml content/profile.yml
+
+# 3. Set secrets in a .env file (optional — all are runtime-only)
+cat > .env <<'EOF'
+GA_MEASUREMENT_ID=G-XXXXXXXXXX
+META_PIXEL_ID=
+SENTRY_DSN=
+# Required only when using the 'search' profile:
+MEILISEARCH_ADMIN_KEY=your-secure-random-key
+MEILISEARCH_SEARCH_KEY=your-public-search-key
+EOF
+
+# 4. Start the app
+docker compose up -d
+```
+
+### Updating (pull & redeploy)
+
+```bash
+cd HopLog
+
+# Pull the latest changes
+git pull origin main
+
+# Rebuild the image and restart the container
+# Blog content in ./blog/ is preserved automatically
+docker compose up -d --build
+```
+
+> **Note:** `blog/` content is mounted as a volume and is never overwritten on update.
+> Only rebuild (`--build`) is needed when application code changes.
+
+### Optional: Enable Meilisearch Search
+
+```bash
+# Start with the search profile (Meilisearch + sync sidecar)
+MEILISEARCH_ADMIN_KEY=your-key MEILISEARCH_SEARCH_KEY=your-key \
+  docker compose --profile search up -d --build
+
+# Sync posts into the Meilisearch index
+docker compose exec app bun run search:sync
+```
+
+### Health Check
+
+```bash
+curl http://localhost:3000/api/health
+```
+
 ## 📜 License
 
 Licensed under the [MIT License](LICENSE). Contributions are welcome!
