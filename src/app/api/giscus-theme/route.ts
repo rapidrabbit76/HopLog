@@ -60,10 +60,13 @@ function generateGiscusCss(colors: Record<string, string>): string {
 }`;
 }
 
+const SAFE_THEME_ID = /^[a-z0-9_-]+$/i;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const themeId = searchParams.get("theme") || "default";
-  const mode = searchParams.get("mode") || "light";
+  const rawThemeId = searchParams.get("theme") || "default";
+  const themeId = SAFE_THEME_ID.test(rawThemeId) ? rawThemeId : "default";
+  const mode = searchParams.get("mode") === "dark" ? "dark" : "light";
 
   const themes = getColorThemes();
   const theme = themes.find((t) => t.id === themeId) || themes[0];

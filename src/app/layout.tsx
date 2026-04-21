@@ -162,7 +162,8 @@ export default async function RootLayout({
     },
   };
 
-  const configDefault = JSON.stringify(config.theme?.default || "default");
+  const rawDefault = config.theme?.default || "default";
+  const configDefault = JSON.stringify(/^[a-z0-9_-]+$/i.test(rawDefault) ? rawDefault : "default");
   const themeBootScript = `
     try {
       var configDefault = ${configDefault};

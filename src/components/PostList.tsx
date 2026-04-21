@@ -46,6 +46,8 @@ export default function PostList({
   const [isLoading, setIsLoading] = React.useState(false);
   const [loadError, setLoadError] = React.useState<string | null>(null);
   const requestSequence = React.useRef(0);
+  const noResultsText = React.useRef(ui.common.noResults);
+  noResultsText.current = ui.common.noResults;
 
   const syncPosts = React.useCallback(async (category: string | null, offset: number, mode: "replace" | "append") => {
     const requestId = requestSequence.current + 1;
@@ -69,14 +71,14 @@ export default function PostList({
       setTotalCount(page.totalCount);
     } catch {
       if (requestSequence.current === requestId) {
-        setLoadError(ui.common.noResults);
+        setLoadError(noResultsText.current);
       }
     } finally {
       if (requestSequence.current === requestId) {
         setIsLoading(false);
       }
     }
-  }, [ui.common.noResults]);
+  }, []);
 
   React.useEffect(() => {
     if (visibleCount <= posts.length || posts.length >= totalCount) {
@@ -98,6 +100,7 @@ export default function PostList({
 
     setCategory(normalizedCategory);
     void syncPosts(normalizedCategory, 0, "replace");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (

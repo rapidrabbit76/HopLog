@@ -26,7 +26,14 @@ async function fetchGitHubContributions(username: string): Promise<Activity[] | 
       return null;
     }
 
-    return data.contributions;
+    return data.contributions.filter(
+      (item): item is Activity =>
+        item !== null &&
+        typeof item === "object" &&
+        typeof item.date === "string" &&
+        typeof item.count === "number" &&
+        typeof item.level === "number",
+    );
   } catch {
     return null;
   }

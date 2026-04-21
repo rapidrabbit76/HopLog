@@ -40,7 +40,7 @@ services:
       - "7700:7700"
     environment:
       - MEILI_ENV=production
-      - MEILI_MASTER_KEY=${MEILISEARCH_ADMIN_KEY:-your-secure-key-at-least-16-bytes}
+      - MEILI_MASTER_KEY=${MEILISEARCH_ADMIN_KEY:?MEILISEARCH_ADMIN_KEY is required when using the search profile}
     volumes:
       - meili_data:/meili_data
     deploy:

@@ -78,7 +78,19 @@ export class MeilisearchSearchProvider extends SearchProvider {
         }
 
         const data = await response.json() as MeilisearchResponse;
-        return data.hits ?? [];
+        const hits = data.hits;
+
+        if (!Array.isArray(hits)) {
+          return null;
+        }
+
+        return hits.filter(
+          (hit): hit is MeilisearchHit =>
+            hit !== null &&
+            typeof hit === "object" &&
+            typeof hit.id === "string" &&
+            typeof hit.title === "string",
+        );
       })
       .catch(() => null);
 

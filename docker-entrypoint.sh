@@ -24,6 +24,6 @@ fi
 PUID=${PUID:-1001}
 PGID=${PGID:-1001}
 
-chown -R "$PUID:$PGID" /app/content /app/.next
+chown -R "$PUID:$PGID" /app/content
 
 exec su-exec "$PUID:$PGID" "$@"

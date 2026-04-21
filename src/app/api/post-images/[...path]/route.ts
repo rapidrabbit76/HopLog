@@ -29,7 +29,7 @@ export async function GET(
     return new NextResponse("Image Not Found", { status: 404 });
   }
 
-  const fileBuffer = fs.readFileSync(fullPath);
+  const fileBuffer = await fs.promises.readFile(fullPath);
 
   return new NextResponse(fileBuffer, {
     headers: {

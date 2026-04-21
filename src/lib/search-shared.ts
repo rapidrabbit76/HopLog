@@ -11,6 +11,23 @@ function isBoundaryCharacter(char: string | undefined): boolean {
   return !char || char === " " || char === "/" || char === "-" || char === "_";
 }
 
+/**
+ * Scores how well `value` matches `search` using a fuzzy matching algorithm
+ * inspired by fzf. Higher scores indicate better matches.
+ *
+ * Scoring breakdown:
+ * - Substring match: 80 points - distance penalty (max 40 points off)
+ * - Character match: 4 points per matched character
+ * - Boundary bonus: 16 points if match starts at a word boundary, 8 per additional boundary
+ * - Consecutive bonus: 14 points for adjacent matched characters, decays with gaps
+ * - Prefix bonus: 12 points if match starts at position 0 of the candidate
+ * - Length penalty: up to -10 points for long candidates (reduces noise from long strings)
+ *
+ * @param value - The candidate string to score against the search query
+ * @param search - The user's search query
+ * @param keywords - Additional keywords appended to the candidate (e.g. post tags, categories)
+ * @returns A non-negative score. 0 means no match. 1 means "show everything" (empty query).
+ */
 export function scoreFzfLikeMatch(value: string, search: string, keywords: string[] = []): number {
   const query = normalizeSearchValue(search);
   if (!query) {

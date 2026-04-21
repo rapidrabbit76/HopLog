@@ -30,7 +30,7 @@ function getFAQDir() {
 }
 
 function isFAQEnabled() {
-  return getConfig().faq?.enabled !== false;
+  return getConfig().faq?.enabled === true;
 }
 
 function isNonEmptyString(value: unknown): value is string {

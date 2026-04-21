@@ -7,7 +7,10 @@ export function getImageContentType(filePath: string) {
   if (ext === ".png") return "image/png";
   if (ext === ".gif") return "image/gif";
   if (ext === ".webp") return "image/webp";
-  if (ext === ".svg") return "image/svg+xml";
+  if (ext === ".ico") return "image/x-icon";
+  if (ext === ".avif") return "image/avif";
 
+  // SVG can contain <script> and is treated as application/octet-stream
+  // to prevent XSS when served from user-controlled content directories.
   return "application/octet-stream";
 }

@@ -17,6 +17,7 @@ export interface PostSEO {
 
 export interface Post {
   id: string;
+  /** Date in YYYY.MM.DD format (e.g. "2026.03.11"). Normalized by normalizeDate() during post loading. */
   date: string;
   title: string;
   category: string[];

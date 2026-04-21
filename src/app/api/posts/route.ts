@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { POSTS_PER_PAGE } from "@/lib/data";
 import { getPostListPage } from "@/lib/posts";
 import { createLogger } from "@/lib/logger";
+import { sanitizeLogValue } from "@/lib/log-sanitize";
 
 const log = createLogger("api/posts");
 const MAX_POSTS_LIMIT = 100;
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   const data = getPostListPage({ category, offset, limit });
   const ms = (performance.now() - start).toFixed(1);
 
-  log.info(`cat=${category ?? "all"} offset=${offset} limit=${limit} → ${data.items.length}/${data.totalCount} posts (${ms}ms)`);
+  log.info(`cat=${sanitizeLogValue(category ?? "all")} offset=${offset} limit=${limit} → ${data.items.length}/${data.totalCount} posts (${ms}ms)`);
 
   return NextResponse.json(data, {
     headers: {

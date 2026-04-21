@@ -38,11 +38,45 @@ const defaultThemes: ColorTheme[] = [
   },
 ];
 
+/**
+ * Validates that a CSS color value does not contain injection characters.
+ * Allows hex (#fff, #ffffff, #ffffffff), rgb/rgba/hsl/hsla/oklch functions,
+ * and CSS named colors (single word, lowercase letters only).
+ */
+const SAFE_CSS_COLOR = /^(#[\da-fA-F]{3,8}|(?:rgb|rgba|hsl|hsla|oklch|oklab|lch|lab)\([^;{}]*\)|[a-z]+)$/;
+
+export function isSafeCssColor(value: string): boolean {
+  return SAFE_CSS_COLOR.test(value.trim());
+}
+
+function isValidColorTheme(value: unknown): value is ColorTheme {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<ColorTheme>;
+  if (typeof candidate.id !== "string" || !candidate.id.trim()) return false;
+  if (typeof candidate.name !== "string" || !candidate.name.trim()) return false;
+  if (!candidate.light || typeof candidate.light !== "object") return false;
+  if (!candidate.dark || typeof candidate.dark !== "object") return false;
+
+  for (const colorValue of [...Object.values(candidate.light), ...Object.values(candidate.dark)]) {
+    if (typeof colorValue !== "string" || !isSafeCssColor(colorValue)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function loadThemeFile(filePath: string): ColorTheme | null {
   try {
     const fileContents = fs.readFileSync(filePath, "utf8");
-    const theme = yaml.load(fileContents) as ColorTheme | null;
-    return theme;
+    const parsed = yaml.load(fileContents);
+
+    if (!isValidColorTheme(parsed)) {
+      console.error(`Invalid theme file (failed validation): ${filePath}`);
+      return null;
+    }
+
+    return parsed;
   } catch (error) {
     console.error(`Failed to load theme file: ${filePath}`, error);
     return null;

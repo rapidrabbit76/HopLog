@@ -43,6 +43,18 @@ function normalizePostId(value: string): string {
     .replace(/\/index$/, "");
 }
 
+/**
+ * Normalizes date strings to YYYY.MM.DD format for consistent sorting.
+ * Accepts YYYY.MM.DD, YYYY-MM-DD, YYYY/MM/DD formats.
+ * Returns the original string if it doesn't match any known format.
+ */
+function normalizeDate(value: string): string {
+  const match = value.match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})$/);
+  if (!match) return value;
+  const [, year, month, day] = match;
+  return `${year}.${month.padStart(2, "0")}.${day.padStart(2, "0")}`;
+}
+
 function resolvePostId(externalId: string): string {
   return normalizePostId(decodeURIComponent(externalId));
 }
@@ -212,6 +224,7 @@ export function getAllPosts(): Post[] {
         id,
         ...(matterResult.data as Omit<Post, "id" | "category" | "seo" | "excerpt">),
         ...(image ? { image } : {}),
+        date: normalizeDate(matterResult.data.date as string),
         category: categories,
         excerpt,
         ...(seo ? { seo } : {}),
@@ -382,6 +395,7 @@ export function getPostById(id: string): PostDetail | null {
     content: matterResult.content,
     ...(matterResult.data as Omit<Post, "id" | "category" | "seo">),
     ...(image ? { image } : {}),
+    date: normalizeDate(matterResult.data.date as string),
     category: categories,
     ...(seo ? { seo } : {}),
   } as PostDetail;

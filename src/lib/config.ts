@@ -401,8 +401,15 @@ class AnalyticsConfigResolver extends ConfigResolver<AnalyticsRuntimeConfig> {
 }
 
 let configLogged = false;
+let configCache: { data: FullConfig; expiresAt: number } | null = null;
 
 export function getConfig(): FullConfig {
+  const ttlMs = process.env.NODE_ENV === "production" ? 60_000 : 0;
+
+  if (ttlMs > 0 && configCache && configCache.expiresAt > Date.now()) {
+    return configCache.data;
+  }
+
   const contentDir = process.env.CONTENT_DIR || "content";
   const basePath = path.join(process.cwd(), contentDir);
 
@@ -450,6 +457,10 @@ export function getConfig(): FullConfig {
         enabled: config.faq?.enabled ?? false,
       }},
     ]);
+  }
+
+  if (ttlMs > 0) {
+    configCache = { data: config, expiresAt: Date.now() + ttlMs };
   }
 
   return config;

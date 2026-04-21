@@ -9,8 +9,8 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://giscus.app",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src * data: blob:",
-  "connect-src * https://www.google-analytics.com https://*.sentry.io https://*.ingest.sentry.io https://connect.facebook.net",
+  "img-src 'self' data: blob: https://www.facebook.com",
+  "connect-src 'self' https://www.google-analytics.com https://*.sentry.io https://*.ingest.sentry.io https://connect.facebook.net",
   "frame-src https://giscus.app",
 ].join("; ");
 
@@ -28,16 +28,7 @@ const nextConfig: NextConfig = {
     "/*": tracedRuntimeContentPaths,
   },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*",
-      },
-      {
-        protocol: "http",
-        hostname: "*",
-      },
-    ],
+    remotePatterns: [],
   },
   async headers() {
     return [
@@ -60,7 +51,7 @@ const nextConfig: NextConfig = {
           },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           {
-            key: "Content-Security-Policy-Report-Only",
+            key: "Content-Security-Policy",
             value: contentSecurityPolicy,
           },
         ],
