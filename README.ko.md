@@ -195,36 +195,36 @@ Meilisearch 사용 시 추가 변수:
 
 ## 🔒 보안
 
-HopLog는 스택 전반에 걸쳐 다층적인 보안 조치를 적용합니다.
+HopLog은 스택 전반에 걸쳐 계층화된 보안 방식을 적용합니다:
 
-| 영역 | 조치 |
+| 영역 | 조치 사항 |
 | :--- | :--- |
-| **CSP** | `Content-Security-Policy` 실제 적용(Report-Only 아님). `script-src`, `img-src`, `connect-src`를 명시적 허용 목록으로 제한. |
-| **SVG 서빙** | SVG 파일을 `application/octet-stream`으로 제공하여 `<script>` 포함 SVG를 통한 저장형 XSS 방지. |
-| **테마 검증** | YAML 테마의 색상값을 CSS 응답에 삽입하기 전에 허용 패턴(`isSafeCssColor`)으로 검증. |
-| **로그 인젝션 방지** | 사용자 입력(검색어, 카테고리 파라미터)을 서버 로그에 기록하기 전에 제어 문자 제거(`sanitizeLogValue`). |
-| **API 입력 검증** | `/api/giscus-theme`의 `themeId`·`mode` 파라미터 화이트리스트 검증. 외부 API(Meilisearch, GitHub Contributions) 응답을 런타임에 타입 검증 후 사용. |
-| **경로 탐색 방지** | 이미지 서빙 라우트에서 실제 파일 경로가 허용된 콘텐츠 디렉토리 내부인지 검증. |
-| **비공개 포스트** | 비공개 포스트는 모든 공개 라우트, API 응답, 사이트맵, 메타데이터에서 완전히 제외. |
+| **CSP** | `Content-Security-Policy`가 강제 적용됩니다 (Report-Only 아님). `script-src`, `img-src`, `connect-src`는 명시된 허용 목록으로 제한됩니다. |
+| **SVG 서빙** | SVG 파일은 콘텐츠 내 `<script>`를 통한 저장형 XSS를 방지하기 위해 `application/octet-stream`으로 서빙됩니다. |
+| **테마 검증** | YAML 테마 색상 값은 CSS 응답에 작성되기 전에 허용 목록 정규식(`isSafeCssColor`)을 통해 검증됩니다. |
+| **로그 인젝션** | 사용자 제공 쿼리 문자열 및 카테고리 파라미터는 서버 로그에 기록되기 전에 정제(`sanitizeLogValue`)됩니다. |
+| **API 입력** | `/api/giscus-theme`의 `themeId` 및 `mode` 쿼리 파라미터는 화이트리스트 검증을 거칩니다. 외부 API 응답(Meilisearch, GitHub Contributions)은 사용 전 런타임 타입 검증을 수행합니다. |
+| **경로 탐색** | 이미지 서빙 라우트는 확인된 경로가 예상되는 콘텐츠 디렉토리 내에 있는지 검증합니다. |
+| **비공개 포스트** | 비공개 포스트는 모든 공개 라우트, API 응답, 사이트맵 및 메타데이터에서 필터링됩니다. |
 
 ## 🖥️ 서버 배포
 
-### 최초 설치
+### 최초 설정
 
 ```bash
 # 1. 서버에서 저장소 클론
 git clone https://github.com/hang-in/HopLog.git
 cd HopLog
 
-# 2. 프로필 파일 복사 및 편집
+# 2. 프로필 복사 및 편집
 cp content/profile.example.yml content/profile.yml
 
-# 3. 시크릿을 .env 파일로 설정 (선택 사항 — 모두 런타임에만 읽음)
+# 3. .env 파일에 비밀값 설정 (선택 사항 — 모두 런타임 전용)
 cat > .env <<'EOF'
 GA_MEASUREMENT_ID=G-XXXXXXXXXX
 META_PIXEL_ID=
 SENTRY_DSN=
-# 'search' 프로필 사용 시 필수:
+# 'search' 프로필 사용 시에만 필요:
 MEILISEARCH_ADMIN_KEY=your-secure-random-key
 MEILISEARCH_SEARCH_KEY=your-public-search-key
 EOF
@@ -233,26 +233,26 @@ EOF
 docker compose up -d
 ```
 
-### 업데이트 배포 (pull 후 재배포)
+### 업데이트 (pull & 재배포)
 
 ```bash
 cd HopLog
 
-# 최신 변경 사항을 가져옵니다
+# 최신 변경 사항 가져오기
 git pull origin main
 
-# 이미지를 재빌드하고 컨테이너를 재시작합니다
-# ./blog/ 안의 블로그 콘텐츠는 자동으로 보존됩니다
+# 이미지 재빌드 및 컨테이너 재시작
+# ./blog/의 블로그 콘텐츠는 자동으로 보존됩니다.
 docker compose up -d --build
 ```
 
-> **참고:** `blog/` 볼륨은 업데이트 여부와 상관없이 절대 덮어쓰이지 않습니다.
-> 애플리케이션 코드가 변경될 때만 `--build`가 필요합니다.
+> **참고:** `blog/` 콘텐츠는 볼륨으로 마운트되며 업데이트 시 덮어쓰여지지 않습니다.
+> 애플리케이션 코드가 변경된 경우에만 재빌드(`--build`)가 필요합니다.
 
 ### 선택 사항: Meilisearch 검색 활성화
 
 ```bash
-# search 프로필로 시작 (Meilisearch + 동기화 사이드카 포함)
+# search 프로필(Meilisearch + 동기화 사이드카)로 시작
 MEILISEARCH_ADMIN_KEY=your-key MEILISEARCH_SEARCH_KEY=your-key \
   docker compose --profile search up -d --build
 
@@ -260,7 +260,7 @@ MEILISEARCH_ADMIN_KEY=your-key MEILISEARCH_SEARCH_KEY=your-key \
 docker compose exec app bun run search:sync
 ```
 
-### 헬스 체크
+### 상태 확인 (Health Check)
 
 ```bash
 curl http://localhost:3000/api/health
