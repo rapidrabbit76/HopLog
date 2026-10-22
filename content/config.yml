@@ -74,3 +74,9 @@ analytics:
     dsnEnv: "SENTRY_DSN"
     environmentEnv: "SENTRY_ENVIRONMENT"
     tracesSampleRate: 1
+  # Self-hosted Umami. Browsers load /_u/script.js and post to /_u/api/send on this site;
+  # the server forwards both to UMAMI_URL, so Umami itself never has to be public.
+  umami:
+    enabled: false
+    websiteIdEnv: "UMAMI_WEBSITE_ID"
+    urlEnv: "UMAMI_URL"

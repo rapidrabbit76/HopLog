@@ -85,7 +85,7 @@ Use `visibility: "private"` to hide a post from the public site (lists, sitemaps
 ### Site Configuration
 Edit `content/config.yml` to manage site-wide metadata, hero content, typography, and title templates. Root SEO settings are managed in `content/seo.yml`.
 
-You can also enable `ga`, `metaPixel`, and `sentry` from `content/config.yml`. Each provider has its own `enabled` flag, so you can turn them on or off independently. Provider values are resolved from env vars such as `GA_MEASUREMENT_ID`, `META_PIXEL_ID`, and `SENTRY_DSN`.
+You can also enable `ga`, `metaPixel`, `sentry`, and `umami` from `content/config.yml`. Each provider has its own `enabled` flag, so you can turn them on or off independently. Provider values are resolved from env vars such as `GA_MEASUREMENT_ID`, `META_PIXEL_ID`, and `SENTRY_DSN`.
 
 ### Post Sharing
 Post pages render an icon-only sharing row at the bottom of each article when `sharing:` in `content/config.yml` contains at least one provider. The array order controls button order.
@@ -144,6 +144,8 @@ All variables are optional and read at runtime — no image rebuild needed to ch
 | `META_PIXEL_ID` | Meta Pixel ID |
 | `SENTRY_DSN` | Sentry DSN |
 | `SENTRY_ENVIRONMENT` | Sentry environment name |
+| `UMAMI_WEBSITE_ID` | Umami website ID |
+| `UMAMI_URL` | Umami server URL reachable from the blog server (e.g. `http://umami:3000`). Browsers only use `/_u/script.js` and `/_u/api/send` on the blog, which proxy to it |
 
 ### Optional: Meilisearch
 

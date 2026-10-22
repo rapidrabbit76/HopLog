@@ -30,6 +30,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  // Umami tracker + collect endpoint on this origin, proxied server-side (src/lib/umami.ts)
+  async rewrites() {
+    return [
+      { source: "/_u/script.js", destination: "/api/umami/script" },
+      { source: "/_u/api/send", destination: "/api/umami/send" },
+    ];
+  },
   async headers() {
     return [
       {

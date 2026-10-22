@@ -144,12 +144,18 @@ export interface SentryAnalyticsConfig extends AnalyticsProviderConfig {
   tracesSampleRate?: number;
 }
 
+export interface UmamiAnalyticsConfig extends AnalyticsProviderConfig {
+  websiteIdEnv?: string;
+  urlEnv?: string;
+}
+
 export interface AnalyticsConfig {
   enabled?: boolean;
   debug?: boolean;
   ga?: GoogleAnalyticsConfig;
   metaPixel?: MetaPixelConfig;
   sentry?: SentryAnalyticsConfig;
+  umami?: UmamiAnalyticsConfig;
 }
 
 export interface AnalyticsRuntimeProviderConfig {
@@ -170,12 +176,18 @@ export interface SentryRuntimeConfig extends AnalyticsRuntimeProviderConfig {
   tracesSampleRate: number;
 }
 
+// Sent to the browser: the Umami server URL stays server-side (see getUmamiServerUrl)
+export interface UmamiRuntimeConfig extends AnalyticsRuntimeProviderConfig {
+  websiteId?: string;
+}
+
 export interface AnalyticsRuntimeConfig {
   enabled: boolean;
   debug: boolean;
   ga: GoogleAnalyticsRuntimeConfig;
   metaPixel: MetaPixelRuntimeConfig;
   sentry: SentryRuntimeConfig;
+  umami: UmamiRuntimeConfig;
 }
 
 export interface MeilisearchInputConfig {
@@ -385,6 +397,20 @@ class SentryAnalyticsConfigResolver extends AnalyticsProviderConfigResolver<Sent
   }
 }
 
+class UmamiConfigResolver extends AnalyticsProviderConfigResolver<UmamiRuntimeConfig> {
+  resolve(): UmamiRuntimeConfig {
+    const analytics = this.config.analytics;
+    const websiteId = this.env(analytics?.umami?.websiteIdEnv);
+    const serverUrl = this.env(analytics?.umami?.urlEnv);
+
+    return {
+      // The browser talks to this site only; the server forwards to Umami, so both values are required
+      enabled: this.isEnabled(analytics?.umami?.enabled, websiteId) && Boolean(serverUrl),
+      websiteId,
+    };
+  }
+}
+
 class AnalyticsConfigResolver extends ConfigResolver<AnalyticsRuntimeConfig> {
   resolve(): AnalyticsRuntimeConfig {
     const analytics = this.config.analytics;
@@ -396,6 +422,7 @@ class AnalyticsConfigResolver extends ConfigResolver<AnalyticsRuntimeConfig> {
       ga: new GoogleAnalyticsConfigResolver(this.config, analyticsEnabled).resolve(),
       metaPixel: new MetaPixelConfigResolver(this.config, analyticsEnabled).resolve(),
       sentry: new SentryAnalyticsConfigResolver(this.config, analyticsEnabled).resolve(),
+      umami: new UmamiConfigResolver(this.config, analyticsEnabled).resolve(),
     };
   }
 }
@@ -502,6 +529,15 @@ export function getCommentsConfig(): CommentsResolvedConfig {
 
 export function getAnalyticsRuntimeConfig(): AnalyticsRuntimeConfig {
   return new AnalyticsConfigResolver().resolve();
+}
+
+/** Umami server the /_u proxy routes forward to, or undefined when Umami is off */
+export function getUmamiServerUrl(): string | undefined {
+  if (!getAnalyticsRuntimeConfig().umami.enabled) {
+    return undefined;
+  }
+
+  return readEnvValue(getConfig().analytics?.umami?.urlEnv)?.replace(/\/+$/, "");
 }
 
 export function getSharingProviders(): SharingProvider[] {

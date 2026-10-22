@@ -94,7 +94,7 @@ visibility: "private" # 선택: 비공개 포스트
 ### 사이트 설정
 `content/config.yml`에서 사이트 메타데이터, hero 내용, 타이포그래피, title template을 설정합니다. 루트 SEO 설정은 `content/seo.yml`에서 관리합니다.
 
-또한 `content/config.yml`에서 `ga`, `metaPixel`, `sentry`를 켜거나 끌 수 있습니다. 각 provider는 개별 `enabled` 플래그를 가지므로 독립적으로 비활성화할 수 있고, 실제 값은 `GA_MEASUREMENT_ID`, `META_PIXEL_ID`, `SENTRY_DSN` 같은 env에서 읽습니다.
+또한 `content/config.yml`에서 `ga`, `metaPixel`, `sentry`, `umami`를 켜거나 끌 수 있습니다. 각 provider는 개별 `enabled` 플래그를 가지므로 독립적으로 비활성화할 수 있고, 실제 값은 `GA_MEASUREMENT_ID`, `META_PIXEL_ID`, `SENTRY_DSN` 같은 env에서 읽습니다.
 
 ### 포스트 공유
 `content/config.yml`의 `sharing:` 배열에 값이 하나라도 있으면 포스트 하단에 아이콘 전용 공유 버튼 줄이 렌더링됩니다. 배열 순서가 버튼 순서를 결정합니다.
@@ -155,6 +155,8 @@ docker compose up -d
 | `META_PIXEL_ID` | Meta Pixel ID |
 | `SENTRY_DSN` | Sentry DSN |
 | `SENTRY_ENVIRONMENT` | Sentry 환경 이름 |
+| `UMAMI_WEBSITE_ID` | Umami 웹사이트 ID |
+| `UMAMI_URL` | 블로그 서버에서 닿는 Umami 주소 (예: `http://umami:3000`). 브라우저는 블로그의 `/_u/script.js`·`/_u/api/send`만 쓰고, 서버가 이 주소로 넘긴다 |
 
 ### 선택 사항: Meilisearch
 

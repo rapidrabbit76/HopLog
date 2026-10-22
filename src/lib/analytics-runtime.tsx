@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import Script from "next/script";
 import type { AnalyticsRuntimeConfig } from "@/lib/config";
+import { UMAMI_SCRIPT_PATH } from "@/lib/umami";
 
 declare global {
   interface Window {
@@ -138,6 +139,21 @@ class MetaPixelProvider extends AnalyticsProvider {
   }
 }
 
+// Umami tracks page views (including client-side navigations) by itself, so trackPageView stays a no-op
+class UmamiProvider extends AnalyticsProvider {
+  constructor(private readonly websiteId?: string) {
+    super("umami", Boolean(websiteId));
+  }
+
+  override renderScripts(): React.ReactNode {
+    if (!this.enabled || !this.websiteId) {
+      return null;
+    }
+
+    return <Script src={UMAMI_SCRIPT_PATH} strategy="afterInteractive" data-website-id={this.websiteId} />;
+  }
+}
+
 export class AnalyticsProviderCollection {
   constructor(readonly providers: AnalyticsProvider[]) {}
 
@@ -170,6 +186,7 @@ export async function createAnalyticsProviderCollection(config: AnalyticsRuntime
   const providers: AnalyticsProvider[] = [
     new GoogleAnalyticsProvider(config.ga.enabled ? config.ga.measurementId : undefined),
     new MetaPixelProvider(config.metaPixel.enabled ? config.metaPixel.pixelId : undefined),
+    new UmamiProvider(config.umami.enabled ? config.umami.websiteId : undefined),
   ];
 
   // Dynamically import SentryProvider only when enabled to avoid bundling @sentry/browser (334KB)
