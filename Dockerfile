@@ -15,6 +15,9 @@ COPY . .
 RUN cp content/profile.example.yml content/profile.yml
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Extra origins allowed to frame the blog (CSP frame-ancestors), see next.config.ts
+ARG CSP_FRAME_ANCESTORS=""
+ENV CSP_FRAME_ANCESTORS=$CSP_FRAME_ANCESTORS
 
 RUN --mount=type=cache,target=/app/.next/cache \
     npm run build

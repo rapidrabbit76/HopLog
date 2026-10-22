@@ -158,6 +158,8 @@ docker compose up -d
 | `UMAMI_WEBSITE_ID` | Umami 웹사이트 ID |
 | `UMAMI_URL` | 블로그 서버에서 닿는 Umami 주소 (예: `http://umami:3000`). 브라우저는 블로그의 `/_u/script.js`·`/_u/api/send`만 쓰고, 서버가 이 주소로 넘긴다. `analytics.umami.recorder: true`면 리플레이·히트맵 녹화도 `/_u/recorder.js`·`/_u/api/record`·`/_u/api/websites/<id>/recorder`로 넘긴다 |
 
+`CSP_FRAME_ANCESTORS`는 **빌드** 인자입니다 (`docker build --build-arg CSP_FRAME_ANCESTORS="https://umami.example.com"`). 블로그를 iframe으로 띄워도 되는 주소로, 실제 페이지 위에 히트맵을 그리는 분석 대시보드 같은 곳입니다. 비우면(기본) `frame-ancestors 'none'`을 유지합니다.
+
 ### 선택 사항: Meilisearch
 
 검색은 내장 로컬 인덱스로 기본 동작합니다. Meilisearch는 **필수가 아닙니다**.

@@ -147,6 +147,8 @@ All variables are optional and read at runtime — no image rebuild needed to ch
 | `UMAMI_WEBSITE_ID` | Umami website ID |
 | `UMAMI_URL` | Umami server URL reachable from the blog server (e.g. `http://umami:3000`). Browsers only use `/_u/script.js` and `/_u/api/send` on the blog, which proxy to it. With `analytics.umami.recorder: true` the replay/heatmap recorder also goes through `/_u/recorder.js`, `/_u/api/record` and `/_u/api/websites/<id>/recorder` |
 
+`CSP_FRAME_ANCESTORS` is a **build** argument (`docker build --build-arg CSP_FRAME_ANCESTORS="https://umami.example.com"`): origins allowed to embed the blog in an iframe, such as an analytics dashboard drawing heatmaps over the live page. Empty (default) keeps `frame-ancestors 'none'`.
+
 ### Optional: Meilisearch
 
 Search works out of the box with a built-in local index. Meilisearch is **not required**.

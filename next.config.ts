@@ -11,10 +11,15 @@ const remoteImageHosts = [
   "raw.githubusercontent.com",
 ];
 
+// Origins allowed to embed the blog in an iframe, e.g. an analytics dashboard that draws heatmaps over the
+// live page (Umami does). Space-separated, read at build time: `--build-arg CSP_FRAME_ANCESTORS="https://umami.example.com"`.
+// Empty keeps the blog unframeable.
+const frameAncestors = (process.env.CSP_FRAME_ANCESTORS ?? "").trim();
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
-  "frame-ancestors 'none'",
+  `frame-ancestors ${frameAncestors ? `'self' ${frameAncestors}` : "'none'"}`,
   "object-src 'none'",
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://giscus.app",
@@ -56,7 +61,8 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
+          // X-Frame-Options has no allowlist; frame-ancestors alone governs framing when origins are allowed
+          ...(frameAncestors ? [] : [{ key: "X-Frame-Options", value: "DENY" }]),
           { key: "X-Content-Type-Options", value: "nosniff" },
           {
             key: "Referrer-Policy",
