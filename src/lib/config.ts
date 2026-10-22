@@ -147,6 +147,8 @@ export interface SentryAnalyticsConfig extends AnalyticsProviderConfig {
 export interface UmamiAnalyticsConfig extends AnalyticsProviderConfig {
   websiteIdEnv?: string;
   urlEnv?: string;
+  // Session replay & heatmaps; sample rate and masking are set per website in Umami
+  recorder?: boolean;
 }
 
 export interface AnalyticsConfig {
@@ -179,6 +181,7 @@ export interface SentryRuntimeConfig extends AnalyticsRuntimeProviderConfig {
 // Sent to the browser: the Umami server URL stays server-side (see getUmamiServerUrl)
 export interface UmamiRuntimeConfig extends AnalyticsRuntimeProviderConfig {
   websiteId?: string;
+  recorder: boolean;
 }
 
 export interface AnalyticsRuntimeConfig {
@@ -407,6 +410,7 @@ class UmamiConfigResolver extends AnalyticsProviderConfigResolver<UmamiRuntimeCo
       // The browser talks to this site only; the server forwards to Umami, so both values are required
       enabled: this.isEnabled(analytics?.umami?.enabled, websiteId) && Boolean(serverUrl),
       websiteId,
+      recorder: analytics?.umami?.recorder === true,
     };
   }
 }

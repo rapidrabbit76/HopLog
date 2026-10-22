@@ -41,11 +41,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: remoteImageHosts.map((hostname) => ({ protocol: "https", hostname })),
   },
-  // Umami tracker + collect endpoint on this origin, proxied server-side (src/lib/umami.ts)
+  // Umami tracker, collect endpoint and replay/heatmap recorder on this origin, proxied server-side (src/lib/umami.ts)
   async rewrites() {
     return [
       { source: "/_u/script.js", destination: "/api/umami/script" },
       { source: "/_u/api/send", destination: "/api/umami/send" },
+      { source: "/_u/recorder.js", destination: "/api/umami/recorder" },
+      { source: "/_u/api/record", destination: "/api/umami/record" },
+      { source: "/_u/api/websites/:websiteId/recorder", destination: "/api/umami/recorder-config/:websiteId" },
     ];
   },
   async headers() {

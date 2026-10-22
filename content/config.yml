@@ -80,3 +80,5 @@ analytics:
     enabled: false
     websiteIdEnv: "UMAMI_WEBSITE_ID"
     urlEnv: "UMAMI_URL"
+    # Session replay & heatmaps (/_u/recorder.js). Sample rate and masking are set per website in Umami
+    recorder: false

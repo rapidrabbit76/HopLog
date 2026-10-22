@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getClientIp, proxyUmamiEvent, proxyUmamiScript } from "@/lib/umami";
+import { getClientIp, proxyUmamiEvent, proxyUmamiRecorderConfig, proxyUmamiRecording, proxyUmamiScript } from "@/lib/umami";
 
 describe("getClientIp", () => {
   it("prefers CF-Connecting-IP over a client-supplied X-Forwarded-For", () => {
@@ -80,5 +80,43 @@ describe("Umami proxy", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
 
     expect((await proxyUmamiScript("http://umami:3000")).status).toBe(502);
+  });
+
+  it("serves the recorder script", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("recorder", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await proxyUmamiScript("http://umami:3000", "recorder.js");
+
+    expect(fetchMock).toHaveBeenCalledWith("http://umami:3000/recorder.js", { cache: "no-store" });
+  });
+
+  it("forwards replay chunks up to Umami's 1 MB limit", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const chunk = new Request("https://blog.example.com/_u/api/record", { method: "POST", body: "x".repeat(600 * 1024) });
+
+    const response = await proxyUmamiRecording("http://umami:3000", chunk);
+
+    expect(response.status).toBe(200);
+    expect(fetchMock.mock.calls[0][0]).toBe("http://umami:3000/api/record");
+    const tooBig = new Request("https://blog.example.com/_u/api/record", { method: "POST", body: "x".repeat(1_000_001) });
+    expect((await proxyUmamiRecording("http://umami:3000", tooBig)).status).toBe(413);
+  });
+
+  it("only forwards recorder settings for this site's own website ID", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"enabled":true}', { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const own = "bb9457e3-4a7b-41ae-8b65-30b54b9e6647";
+
+    const ok = await proxyUmamiRecorderConfig("http://umami:3000", own, own);
+    const other = await proxyUmamiRecorderConfig("http://umami:3000", own, "fbf4b685-38f2-430d-94c8-f86ea5f476eb");
+    const traversal = await proxyUmamiRecorderConfig("http://umami:3000", own, "../../users");
+
+    expect(ok.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(`http://umami:3000/api/websites/${own}/recorder`, { cache: "no-store" });
+    expect(other.status).toBe(404);
+    expect(traversal.status).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

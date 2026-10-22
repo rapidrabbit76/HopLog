@@ -156,7 +156,7 @@ docker compose up -d
 | `SENTRY_DSN` | Sentry DSN |
 | `SENTRY_ENVIRONMENT` | Sentry 환경 이름 |
 | `UMAMI_WEBSITE_ID` | Umami 웹사이트 ID |
-| `UMAMI_URL` | 블로그 서버에서 닿는 Umami 주소 (예: `http://umami:3000`). 브라우저는 블로그의 `/_u/script.js`·`/_u/api/send`만 쓰고, 서버가 이 주소로 넘긴다 |
+| `UMAMI_URL` | 블로그 서버에서 닿는 Umami 주소 (예: `http://umami:3000`). 브라우저는 블로그의 `/_u/script.js`·`/_u/api/send`만 쓰고, 서버가 이 주소로 넘긴다. `analytics.umami.recorder: true`면 리플레이·히트맵 녹화도 `/_u/recorder.js`·`/_u/api/record`·`/_u/api/websites/<id>/recorder`로 넘긴다 |
 
 ### 선택 사항: Meilisearch
 
