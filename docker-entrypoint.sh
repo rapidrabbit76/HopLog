@@ -25,5 +25,9 @@ PUID=${PUID:-1001}
 PGID=${PGID:-1001}
 
 chown -R "$PUID:$PGID" /app/content
+# next/image writes its optimized-image cache here at runtime; the image builds .next as uid 1001,
+# so a different PUID could not write it. Only the cache dir, not the whole .next tree (slow on every start)
+mkdir -p /app/.next/cache
+chown -R "$PUID:$PGID" /app/.next/cache
 
 exec su-exec "$PUID:$PGID" "$@"

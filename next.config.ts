@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+// Hosts that post images and thumbnails may load from. Posts brought in with `import:velog` keep pointing at
+// Velog's CDNs; GitHub "raw" links redirect to raw.githubusercontent.com, and CSP checks the redirect target too.
+// Used for both the CSP img-src and next/image (post thumbnails), so add a host here once.
+const remoteImageHosts = [
+  "images.velog.io",
+  "velog.velcdn.com",
+  "images.pexels.com",
+  "github.com",
+  "raw.githubusercontent.com",
+];
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -9,7 +20,7 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://giscus.app",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  "img-src 'self' data: blob: https://www.facebook.com",
+  `img-src 'self' data: blob: https://www.facebook.com ${remoteImageHosts.map((host) => `https://${host}`).join(" ")}`,
   "connect-src 'self' https://www.google-analytics.com https://*.sentry.io https://*.ingest.sentry.io https://connect.facebook.net",
   "frame-src https://giscus.app",
 ].join("; ");
@@ -28,7 +39,7 @@ const nextConfig: NextConfig = {
     "/*": tracedRuntimeContentPaths,
   },
   images: {
-    remotePatterns: [],
+    remotePatterns: remoteImageHosts.map((hostname) => ({ protocol: "https", hostname })),
   },
   // Umami tracker + collect endpoint on this origin, proxied server-side (src/lib/umami.ts)
   async rewrites() {
