@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { isValidElement } from "react";
-import { getPostById, getAllPosts, getAdjacentPosts } from "@/lib/posts";
+import { getPostById, getAllPosts, getAdjacentPosts, getPostTranslations } from "@/lib/posts";
 import { getConfig, getCommentsConfig, getSEOConfig, getSiteHost, getSharingProviders } from "@/lib/config";
 import { getUIStrings, parseLocaleCookie } from "@/lib/i18n";
 import { notFound } from "next/navigation";
@@ -11,7 +11,8 @@ import remarkMath from "remark-math";
 import rehypeSlug from "rehype-slug";
 import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
-import TableOfContents from "@/components/TableOfContents";
+import TranslatedPost from "@/components/TranslatedPost";
+import { isLocale } from "@/lib/i18n";
 import CodeCopyButton from "@/components/CodeCopyButton";
 import PostNavigation from "@/components/PostNavigation";
 import GiscusComments from "@/components/GiscusComments";
@@ -107,6 +108,9 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     notFound();
   }
 
+  const translations = getPostTranslations(id);
+  const originalLocale = post.category.map((category) => category.toLowerCase()).find(isLocale) ?? "ko";
+
   const { prev, next } = getAdjacentPosts(id);
   const config = getConfig();
   const commentsConfig = getCommentsConfig();
@@ -130,27 +134,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     return "";
   };
 
-  return (
-    <div className="relative w-full">
-      {fontUrl && <link rel="stylesheet" href={fontUrl} />}
-      <TableOfContents />
-
-      <article className="w-full pt-7 pb-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <header className="mb-10 space-y-3">
-          <div className="flex flex-wrap items-center gap-3 text-[13px] font-bold text-primary">
-            <div className="flex gap-2">
-              {post.category.map((cat) => (
-                <span key={`${post.id}-${cat}`}>{cat}</span>
-              ))}
-            </div>
-            <span className="w-1 h-1 rounded-full bg-border shrink-0"></span>
-            <time dateTime={post.date.replace(/\./g, "-")} className="text-muted-foreground font-medium shrink-0">
-              {post.date}
-            </time>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">{post.title}</h1>
-        </header>
-
+  const renderContent = (content: string) => (
         <div
           className="prose prose-zinc dark:prose-invert max-w-none 
                      prose-headings:font-bold prose-headings:tracking-tight 
@@ -178,9 +162,23 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
               },
             }}
           >
-            {post.content}
+            {content}
           </ReactMarkdown>
         </div>
+  );
+
+  return (
+    <div className="relative w-full">
+      {fontUrl && <link rel="stylesheet" href={fontUrl} />}
+      <article className="w-full pt-7 pb-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <header className="mb-10 space-y-3">
+          <div className="flex flex-wrap items-center gap-3 text-[13px] font-bold text-primary">
+            <div className="flex gap-2">{post.category.map((cat) => <span key={`${post.id}-${cat}`}>{cat}</span>)}</div>
+            <span className="w-1 h-1 rounded-full bg-border shrink-0"></span>
+            <time dateTime={post.date.replace(/\./g, "-")} className="text-muted-foreground font-medium shrink-0">{post.date}</time>
+          </div>
+        </header>
+        <TranslatedPost originalLocale={originalLocale} original={{ title: post.title, content: renderContent(post.content) }} translations={Object.fromEntries(Object.entries(translations).map(([locale, value]) => [locale, { title: value.title, content: renderContent(value.content) }]))} />
 
         {sharingProviders.length > 0 && (
           <ShareButtons providers={sharingProviders} title={post.title} description={post.excerpt} />
