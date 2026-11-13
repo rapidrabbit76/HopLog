@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import { Post, PostActivityItem, PostListItem, PostListPage, POSTS_PER_PAGE, PostSEO, PostSearchItem, PostSearchSyncItem } from "./data";
 import { getPostsCacheTtlMs } from "./config";
 import { resolvePostImageUrl } from "./post-images";
+import { isLocale, type Locale } from "./i18n";
 
 export interface PostDetail extends Post {
   content: string;
@@ -71,7 +72,7 @@ function getMarkdownFilePaths(directory: string): string[] {
       return getMarkdownFilePaths(entryPath);
     }
 
-    return entry.isFile() && entry.name.endsWith(".md") ? [entryPath] : [];
+    return entry.isFile() && entry.name.endsWith(".md") && !/^index\.(en|ko|ja|zh)\.md$/.test(entry.name) ? [entryPath] : [];
   });
 }
 
@@ -399,4 +400,21 @@ export function getPostById(id: string): PostDetail | null {
     category: categories,
     ...(seo ? { seo } : {}),
   } as PostDetail;
+}
+
+export function getPostTranslations(id: string): Partial<Record<Locale, PostDetail>> {
+  const post = getPostById(id);
+  if (!post) return {};
+  const normalizedId = resolvePostId(id);
+  const original = getMarkdownFilePaths(postsDirectory).find((filePath) => getPostIdFromPath(filePath) === normalizedId);
+  if (!original || path.basename(original) !== "index.md") return {};
+  const translations: Partial<Record<Locale, PostDetail>> = {};
+  for (const filename of fs.readdirSync(path.dirname(original))) {
+    const match = /^index\.(en|ko|ja|zh)\.md$/.exec(filename);
+    if (!match || !isLocale(match[1])) continue;
+    const parsed = matter(fs.readFileSync(path.join(path.dirname(original), filename), "utf8"));
+    if (isPrivatePost(parsed.data) || typeof parsed.data.title !== "string") continue;
+    translations[match[1]] = { ...post, title: parsed.data.title, content: parsed.content.trim(), excerpt: typeof parsed.data.excerpt === "string" ? parsed.data.excerpt : post.excerpt };
+  }
+  return translations;
 }
